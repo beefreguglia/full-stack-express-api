@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express"
 import { routes } from "./routes"
+import { AppError } from "./utils/AppError"
 
 const PORT = 3333
 
@@ -13,6 +14,11 @@ app.use(express.json())
 
 app.use(routes)
 
+/**
+ * 400 (Bad request) Erro do cliente.
+ * 500 (Internal Server Error): Erro interno do servidor.
+ */
+
 // Colocamos no final para pegar todos os erros disparados pelo sistema
 app.use((
   error: any, 
@@ -20,6 +26,10 @@ app.use((
   response: Response, 
   _: NextFunction
 ) => {
+  if(error instanceof AppError) {
+    return response.status(error.statusCode).json({ message: error.message })
+  }
+
   response.status(500).json({ message: error.message })
 })
 
